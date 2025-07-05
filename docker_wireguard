@@ -1,0 +1,12 @@
+services:
+  wireguard-client:
+    image: cmulk/wireguard-docker
+    container_name: wireguard-client
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun
+    volumes:
+      - ./wg1.conf:/etc/wireguard/wg1.conf
+    command: wg-quick up wg1
+    restart: unless-stopped
