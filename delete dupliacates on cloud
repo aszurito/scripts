@@ -1,0 +1,32 @@
+#!/bin/bash
+
+DAYS=0
+LOCAL_DIR="/mnt/local/test"
+CLOUD_DIRS=(
+  "/mnt/cloud/one1c/test"
+  "/mnt/cloud/one2c/test"
+  "/mnt/cloud/one3c/test"
+  "/mnt/cloud/one4c/test"
+  "/mnt/cloud/one5c/test"
+)
+LOG_FILE="/home/aszur/scripts/alldelete.log"
+
+# Upewnij się, że plik log istnieje
+touch "$LOG_FILE"
+
+# Znajdowanie plików starszych niż DAYS dni, pomijając katalog Downloads
+find "$LOCAL_DIR" -type f ! -path "$LOCAL_DIR/Downloads/*" | while read -r local_file; do
+  rel_path="${local_file#$LOCAL_DIR/}"
+  # Sprawdź we wszystkich katalogach chmurowych
+  for CLOUD_DIR in "${CLOUD_DIRS[@]}"; do
+    cloud_file="$CLOUD_DIR/$rel_path"
+    if [ -f "$cloud_file" ]; then
+      echo "$(date '+%Y-%m-%d %H:%M:%S') Usuwam $local_file (znaleziono w $CLOUD_DIR)" | tee -a "$LOG_FILE"
+      rm "$local_file"
+      #break  # nie trzeba sprawdzać kolejnych, jeśli już istnieje
+    fi
+  done
+done
+
+# Usuwanie pustych katalogów (poza Downloads)
+find "$LOCAL_DIR" -mindepth 2 -type d -empty ! -path "$LOCAL_DIR/Downloads/*" -delete
